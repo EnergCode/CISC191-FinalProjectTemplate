@@ -1,52 +1,61 @@
 package edu.sdccd.cisc191.template;
 
-import java.net.*;
-import java.io.*;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
-/**
- * This program is a server that takes connection requests on
- * the port specified by the constant LISTENING_PORT.  When a
- * connection is opened, the program sends the current time to
- * the connected socket.  The program will continue to receive
- * and process connections until it is killed (by a CONTROL-C,
- * for example).  Note that this server processes each connection
- * as it is received, rather than creating a separate thread
- * to process the connection.
- */
-public class Server {
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+//David De La Toba
+//September 29
+//Professor Andrew Huang
 
-    public void start(int port) throws Exception {
-        serverSocket = new ServerSocket(port);
-        clientSocket = serverSocket.accept();
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+public class Server extends Application
+{
+    private PanelLabel appTitle;
 
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            CustomerRequest request = CustomerRequest.fromJSON(inputLine);
-            CustomerResponse response = new CustomerResponse(request.getId(), "Jane", "Doe");
-            out.println(CustomerResponse.toJSON(response));
+    // Puts title on main panel
+    public void updateHeader()
+    {
+        appTitle = new PanelLabel();
+        appTitle.setText("Personal Task Manager");
+    }
+
+
+    public static void main(String[] args)
+    {
+        launch();
+    }
+    /*Creates main stage, scene and BorderPane.
+    Puts Vbox on left side of screen to hold main selection buttons.
+    Creates 5 PanelButton objects to place in vbox on left side.
+    Places app title on the top of BorderPane
+    */
+    @Override
+    public void start(Stage stage) throws Exception {
+        updateHeader();
+        BorderPane root = new BorderPane();
+        VBox leftSidePanel = new VBox();
+        HBox topSidePanel = new HBox(appTitle);
+
+        root.setTop(topSidePanel);
+        root.setLeft(leftSidePanel);
+
+
+        for(int i = 0; i < 5; i++) {
+            PanelButton button = new PanelButton(i);
+            leftSidePanel.getChildren().add(button);
+            int finalI = i;
+            button.setOnAction(e -> {
+                button.designateTask(finalI, root);});
         }
+
+
+        Scene scene = new Scene(root, 1920, 1080);
+        stage.setTitle("JavaFxProject");
+        stage.setScene(scene);
+        stage.show();
     }
 
-    public void stop() throws IOException {
-        in.close();
-        out.close();
-        clientSocket.close();
-        serverSocket.close();
-    }
-
-    public static void main(String[] args) {
-        Server server = new Server();
-        try {
-            server.start(4444);
-            server.stop();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
-} //end class Server
+}
